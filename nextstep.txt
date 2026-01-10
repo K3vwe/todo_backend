@@ -1,0 +1,5 @@
+SQLAlchemy Task model
+Alembic migration
+Status enum (pending | active | completed)
+Auto-set started_at / completed_at
+Validation rules (e.g., completed_at auto-set)
