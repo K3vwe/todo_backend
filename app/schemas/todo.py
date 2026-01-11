@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional
 from app.models.enum import TaskStatus
@@ -19,8 +19,7 @@ class TaskResponse(TaskBase):
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
 
-    class Config: 
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class UpdateTask(BaseModel):
     title: Optional[str] = None

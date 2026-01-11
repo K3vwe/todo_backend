@@ -1,4 +1,8 @@
-# Virtual environment
+# ------------------------------
+# Python / FastAPI
+# ------------------------------
+
+# Virtual environments
 .venv/
 env/
 venv/
@@ -6,19 +10,69 @@ venv/
 # Python cache
 __pycache__/
 *.py[cod]
+*$py.class
 
-# VSCode
-.vscode/
-
-# MacOS
-.DS_Store
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
 
 # Logs
 *.log
 
-# Database / SQLite
+# SQLite / local databases (not Postgres, but keep just in case)
 *.db
 *.sqlite3
 
 # Environment variables
 .env
+.env.*   # e.g., .env.dev, .env.prod
+
+# ------------------------------
+# IDEs / editors
+# ------------------------------
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ------------------------------
+# macOS
+# ------------------------------
+.DS_Store
+
+# ------------------------------
+# Docker
+# ------------------------------
+# Ignore built images, local containers, and temporary files
+docker-compose.override.yml
+*.dockerignore
+*.tar
+*.tmp
+
+# Optional: ignore volumes if you mount them
+volumes/
+
+# ------------------------------
+# Postgres
+# ------------------------------
+# Ignore local Postgres data directories (if using mounted volumes)
+pgdata/
+*.backup
+*.dump
+*.sql
+
+# ------------------------------
+# Testing / coverage
+# ------------------------------
+.coverage
+htmlcov/
+.tox/
+pytest_cache/
+
+# ------------------------------
+# FastAPI / auto-generated files
+# ------------------------------
+# Ignore generated OpenAPI docs or JSONs if you store them
+docs/
+*.json
