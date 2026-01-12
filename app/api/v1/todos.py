@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException
 from datetime import datetime
-from app.models.enum import TaskStatus
+from app.models.enum import TaskStatus, TaskPriority
 from app.schemas.todo import CreateTask, UpdateTask, TaskResponse
 
-router = APIRouter(prefix="/tasks", tags=["tasks"])
+task_router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 # In memory database
 tasks_db = []
@@ -12,13 +12,13 @@ tasks_db = []
 # -----------------------------
 # CREATE TASK
 # -----------------------------
-@router.post("/", response_model=TaskResponse, status_code=201)
+@task_router.post("/", response_model=TaskResponse, status_code=201)
 def create_task(task: CreateTask):
     new_task = {
         "id": len(tasks_db) + 1,
         "title": task.title,
         "description": task.description,
-        "priority": task.priority,
+        "priority": TaskPriority.MEDIUM.value,
         "status": TaskStatus.PENDING.value,  # default starting status
         "due_at": task.due_at or datetime.now(),  # fallback if None
         "created_at": datetime.now(),
@@ -32,14 +32,14 @@ def create_task(task: CreateTask):
 # -----------------------------
 # GET ALL TASKS
 # -----------------------------
-@router.get('/', response_model=list[TaskResponse])
+@task_router.get('/', response_model=list[TaskResponse])
 def get_tasks():
     return(tasks_db)
 
 # -----------------------------
 # GET TASK BY ID
 # -----------------------------
-@router.get('/{task_id}', response_model=TaskResponse)
+@task_router.get('/{task_id}', response_model=TaskResponse)
 def get_task(task_id: int):
     task = next((t for t in tasks_db if t["id"] == task_id), None)
 
@@ -50,7 +50,7 @@ def get_task(task_id: int):
 # -----------------------------
 # UPDATE TASK
 # -----------------------------
-@router.patch('/{task_id}', response_model=TaskResponse)
+@task_router.patch('/{task_id}', response_model=TaskResponse)
 def update_task(task_id: int, updates: UpdateTask):
     # Get tasks from database 
     task = next((task for task in tasks_db if task["id"] == task_id), None)
@@ -74,7 +74,7 @@ def update_task(task_id: int, updates: UpdateTask):
 # -----------------------------
 # DELETE TASK
 # -----------------------------
-@router.delete('/{task_id}')
+@task_router.delete('/{task_id}')
 def delete_task(task_id: int):
     index = next((i for i, t in enumerate(tasks_db) if t["id"] == task_id), None)
 

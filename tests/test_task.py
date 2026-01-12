@@ -5,7 +5,7 @@ def test_create_task(client):
     payload = {
         "title": "Give Thanks",
         "description": "Thank God",
-        "priority": "high",
+        "priority": "MEDIUM",
         "due_at": "2026-01-15T12:00:00"
     }
 
