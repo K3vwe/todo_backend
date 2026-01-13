@@ -10,7 +10,7 @@ users_db = []
 # -----------------------------
 # CREATE TASK
 # -----------------------------
-@users.post('/', response_model=UserResponse)
+@users.post('/', response_model=UserResponse, status_code=201)
 def create_user(user: CreateUser):
     new_user = {
         "id": len(users_db) + 1,
@@ -40,7 +40,7 @@ def get_user(user_id: int):
 # -----------------------------
 # UPDATE TASK
 # -----------------------------
-@users.patch('/{user_id}', response_model=UserResponse)
+@users.patch('/{user_id}', response_model=UserResponse, status_code = 201)
 def user_update(user_id: int, user_update: UserUpdate):
 
     #Get user from database
