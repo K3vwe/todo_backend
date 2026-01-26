@@ -1,33 +1,27 @@
-from sqlalchemy.ext.asyncio import (
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
+# app/core/database.py
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
-from core.config import settings
 from typing import AsyncGenerator
 
+# Delayed import of settings
+from app.core.config import settings
 
-# Engine
+# Async Engine
 engine = create_async_engine(
     settings.SQLALCHEMY_DATABASE_URI,
-    echo=False,
-    pool_size=10,
-    max_overflow=10,
+    echo=False,  # set True for debugging
+    pool_size=10,  # optional
 )
 
-
-# Session factory
+# Async Session factory
 AsyncSessionLocal = async_sessionmaker(
     engine,
     expire_on_commit=False,
 )
 
-
-# Base class for models
+# Base for models
 class Base(DeclarativeBase):
     pass
-
 
 # FastAPI dependency
 async def get_db() -> AsyncGenerator[AsyncSession, None]:

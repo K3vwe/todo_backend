@@ -32,5 +32,6 @@ starlette==0.50.0
 typing==3.7.4.3
 typing-inspection==0.4.2
 typing_extensions==4.15.0
+uuid==1.30
 uvicorn==0.40.0
 zope.interface==8.2
