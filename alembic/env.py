@@ -7,8 +7,9 @@ from alembic import context
 
 # Load app settings and models AFTER .env
 from app.core.config import settings
-from app.core.database import Base  # Your SQLAlchemy Base
-import app.models  # Ensure all models are imported
+# from app.core.database import Base  # Your SQLAlchemy Base
+from app.models import Base # Ensure all models are imported
+from app.models.todo import Task
 
 # ---------------- Alembic Config ---------------- #
 config = context.config

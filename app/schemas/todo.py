@@ -2,6 +2,8 @@ from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional
 from app.models.enum import TaskStatus
+from uuid import UUID
+
 
 class TaskBase(BaseModel):
     title: str
@@ -12,7 +14,7 @@ class CreateTask(TaskBase):
     due_at: Optional[datetime] = None
 
 class TaskResponse(TaskBase):
-    id: int
+    id: UUID
     status: TaskStatus
     due_at: Optional[datetime] = None
     created_at: datetime

@@ -1,6 +1,5 @@
 import uuid
 from datetime import datetime, date, time
-
 from sqlalchemy import (
     String,
     Text,
@@ -46,17 +45,22 @@ class Task(Base):
         server_default=TaskStatus.PENDING.value,
     )
 
+    due_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    due_date: Mapped[date] = mapped_column(
+        Date,
+        nullable=True,
+    )
+
     due_time: Mapped[time] = mapped_column(
         Time,
         nullable=True,
     )
 
-    due_date: Mapped[Date] = mapped_column(
-        Date,
-        nullable=True,
-    )
-
-    created_at: Mapped[DateTime] = mapped_column(
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         server_default=func.now(),
