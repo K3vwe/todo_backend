@@ -1,4 +1,5 @@
 import uuid
+from .users import User
 from datetime import datetime, date, time
 from sqlalchemy import (
     String,
@@ -7,10 +8,11 @@ from sqlalchemy import (
     Time,
     Enum,
     DateTime,
+    ForeignKey,
     func
 )
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
 from app.models.enum import TaskStatus, TaskPriority
 
@@ -21,6 +23,11 @@ class Task(Base):
         UUID(as_uuid=True),
         primary_key=True,
         default=uuid.uuid4,
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id"),
+        nullable=False,
     )
 
     title: Mapped[str] = mapped_column(
@@ -75,3 +82,5 @@ class Task(Base):
         DateTime(timezone=True),
         nullable=True,
     )
+
+    user: Mapped[User] = relationship("User", back_populates="tasks")

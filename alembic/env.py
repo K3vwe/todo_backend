@@ -9,7 +9,7 @@ from alembic import context
 from app.core.config import settings
 # from app.core.database import Base  # Your SQLAlchemy Base
 from app.models import Base # Ensure all models are imported
-from app.models.todo import Task
+from app.models.tasks import Task
 
 # ---------------- Alembic Config ---------------- #
 config = context.config
@@ -22,7 +22,6 @@ target_metadata = Base.metadata
 # ---------------- Database URL ---------------- #
 db_url = settings.SQLALCHEMY_DATABASE_URI
 config.set_main_option("sqlalchemy.url", db_url)
-print("Alembic connecting to:", db_url)
 
 # ---------------- Offline Migrations ---------------- #
 def run_migrations_offline():

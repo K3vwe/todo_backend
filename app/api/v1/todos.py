@@ -2,17 +2,13 @@ from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timezone
 from app.models.enum import TaskStatus, TaskPriority
 from app.schemas.todo import CreateTask, UpdateTask, TaskResponse
-from app.models.todo import Task
+from app.models.tasks import Task
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from sqlalchemy import select, insert
 from uuid import UUID
 
 task_router = APIRouter(prefix="/tasks", tags=["tasks"])
-
-# In memory database
-tasks_db = []
-
 
 # -----------------------------
 # CREATE TASK

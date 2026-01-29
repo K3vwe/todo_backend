@@ -3,8 +3,6 @@ from typing import Any, Annotated
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, AnyUrl, HttpUrl
 from pydantic.functional_validators import BeforeValidator
-from sqlalchemy.engine import URL
-import os
 
 
 def parse_cors(v: Any) -> list[str]:
@@ -64,19 +62,4 @@ class Settings(BaseSettings):
             f"{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
         )
 
-    # @property
-    # def SQLALCHEMY_DATABASE_URI(self) -> str:
-    #     return str(
-    #         URL.create(
-    #             drivername="postgresql+asyncpg",
-    #             username=self.POSTGRES_USER,
-    #             password=self.POSTGRES_PASSWORD,
-    #             host=self.POSTGRES_SERVER,
-    #             port=self.POSTGRES_PORT,
-    #             database=self.POSTGRES_DB,
-    #         )
-    #     )
-
-
-print("POSTGRES_PASSWORD FROM ENV:", repr(os.getenv("POSTGRES_PASSWORD")))
 settings = Settings()
