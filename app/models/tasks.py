@@ -6,12 +6,11 @@ from sqlalchemy import (
     Text,
     Date,
     Time,
-    Enum,
     DateTime,
     ForeignKey,
     func
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, ENUM
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
 from app.models.enum import TaskStatus, TaskPriority
@@ -41,13 +40,13 @@ class Task(Base):
     )
 
     priority: Mapped[TaskPriority] = mapped_column(
-        Enum(TaskPriority, name="task_priority"),
+        ENUM(TaskPriority, name="task_priority", create_type=False,),
         nullable=False,
         server_default=TaskPriority.MEDIUM.value,
     )
 
     status: Mapped[TaskStatus] = mapped_column(
-        Enum(TaskStatus, name="task_status"),
+        ENUM(TaskStatus, name="task_status", create_type=False,),
         nullable=False,
         server_default=TaskStatus.PENDING.value,
     )

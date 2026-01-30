@@ -9,7 +9,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from .tasks import Task
 
 class User(Base):
     __tablename__ = "users"
