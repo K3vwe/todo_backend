@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from datetime import datetime
 from typing import Optional
-
+from uuid import UUID
 # Base schema shared across operations
 class UserBase(BaseModel):
     username: str = Field(..., max_length=50)
@@ -15,9 +15,9 @@ class CreateUser(UserBase):
 
 # Schema used when returning user data (hides password)
 class UserResponse(UserBase):
-    id: int
+    id: UUID
     created_at: datetime
-    updated_at: Optional[datetime] = None
+    updated_at: datetime
     model_config = ConfigDict(from_attributes=True)
 
 # Schema used when updating a user (all fields optional)

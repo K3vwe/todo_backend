@@ -1,76 +1,90 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime
 from app.schemas.user import CreateUser, UserUpdate, UserResponse
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.models.users import User
+from app.core.database import get_db
+from sqlalchemy import select
 
 users = APIRouter(prefix="/users", tags={"users"})
 
-# In Memory User Database
-users_db = []
-
 # -----------------------------
-# CREATE TASK
+# CREATE USER
 # -----------------------------
 @users.post('/', response_model=UserResponse, status_code=201)
-def create_user(user: CreateUser):
+async def create_user(user: CreateUser, db: AsyncSession = Depends(get_db)):
     new_user = {
-        "id": len(users_db) + 1,
         "fullname": user.fullname,
         "username": user.username,
         "email": user.email,
         "hashed_password": user.hashed_password,
-        "created_at": datetime.now()
     }
+    user_instance = User(**new_user)
 
-    users_db.append(new_user)
-    return new_user
+    async with db.begin():
+        db.add(user_instance)
+        await db.flush()
 
+    await db.refresh(user_instance)
+
+    return user_instance
 
 # -----------------------------
 # GET USER BY ID
 # -----------------------------
 @users.get('/{user_id}', response_model=UserResponse)
-def get_user(user_id: int):
-    user = next((user for user in users_db if user["id"] == user_id), None)
+async def get_user(user_id: str, db: AsyncSession = Depends(get_db)):
 
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    async with db.begin():
+        # Get User obj from db
+        user = (await db.execute(select(User).where(User.id==user_id))).scalar_one_or_none()
+
+        # check if user exists
+        if user is None:
+            raise HTTPException(status_code=404, detail="User does not exist")
+        
+        return user
     
-    return user
-
+    
 # -----------------------------
 # UPDATE TASK
 # -----------------------------
-@users.patch('/{user_id}', response_model=UserResponse, status_code = 201)
-def user_update(user_id: int, user_update: UserUpdate):
+@users.patch('/{user_id}', response_model=UserResponse, status_code = 200)
+async def user_update(user_id: str, user_update: UserUpdate, db: AsyncSession = Depends(get_db)):
 
-    #Get user from database
-    user = next((user for user in users_db if user["id"] == user_id), None)
+    async with db.begin():
+        # Get User obj from db
+        user = (await db.execute(select(User).where(User.id==user_id))).scalar_one_or_none()
 
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    # Update only provided fields
-    for key, value in user_update.model_dump(exclude_unset=True).items():
-        user[key] = value
-        # Optional: auto-set timestamps based on user update
-    user["updated_at"] = datetime.now()
-
-    return user
-
+        # check if user exists
+        if user is None:
+            raise HTTPException(status_code=404, detail="User does not exist")
+        
+        # Update only provided fields
+        for key, value in user_update.model_dump(exclude_unset=True).items():
+            setattr(user, key, value)
+        
+        return user
 
 # -----------------------------
-# DELETE TASK
+# DELETE USER
 # -----------------------------
 @users.delete('/{user_id}')
-def user_delete(user_id: int):
+async def user_delete(user_id: str, db: AsyncSession=Depends(get_db)):
 
-    # Get the user index from the database
-    index = next((i for i, t in enumerate(users_db) if t["id"] == user_id), None)
+    # Delete user from db transaction
+    async with db.begin():
+        # Get User obj from db
+        user = (await db.execute(select(User).where(User.id==user_id))).scalar_one_or_none()
 
-    if index is None:
-        raise HTTPException(status_code=404, detail="User does not exist")
-    
-    users_db.pop(index)
-    return {"Message": "User Deleted Sucessfully", "User_id": user_id}
+        # check if user exists
+        if user is None:
+            raise HTTPException(status_code=404, detail="User does not exist")
+        
+        # delete user from db
+        await db.delete(user)
+
+    return {"detail": f"User {user_id} deleted successfully"}
+
 
 
