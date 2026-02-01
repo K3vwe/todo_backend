@@ -58,7 +58,7 @@ class Task(Base):
 
     due_date: Mapped[date] = mapped_column(
         Date,
-        nullable=True,
+        nullable=True
     )
 
     due_time: Mapped[time] = mapped_column(
@@ -70,6 +70,12 @@ class Task(Base):
         DateTime(timezone=True),
         nullable=False,
         server_default=func.now(),
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now()
     )
 
     started_at: Mapped[DateTime] = mapped_column(

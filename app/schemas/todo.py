@@ -15,6 +15,7 @@ class CreateTask(TaskBase):
 
 class TaskResponse(TaskBase):
     id: UUID
+    user_id: UUID
     status: TaskStatus
     due_at: Optional[datetime] = None
     created_at: datetime
