@@ -11,7 +11,7 @@ class UserBase(BaseModel):
 # Schema used when creating a user
 class CreateUser(UserBase):
     profile_url: Optional[str] = None
-    hashed_password: str = Field(min_length=8)
+    password: str = Field(min_length=8)
 
 # Schema used when returning user data (hides password)
 class UserResponse(UserBase):
@@ -25,5 +25,5 @@ class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, max_length=50)
     fullname: Optional[str] = Field(None, max_length=50)
     email: Optional[EmailStr] = None
-    hashed_password: Optional[str] = Field(None, min_length=6)
+    password: Optional[str] = Field(None, min_length=6)
     profile_url: Optional[str] = None

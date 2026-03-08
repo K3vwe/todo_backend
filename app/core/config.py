@@ -3,7 +3,9 @@ from typing import Any, Annotated
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, AnyUrl, HttpUrl
 from pydantic.functional_validators import BeforeValidator
+from fastapi.security import OAuth2PasswordBearer
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 def parse_cors(v: Any) -> list[str]:
     if v is None:
@@ -24,6 +26,9 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+    SECRET_KEY: str
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int
 
     # Project
     PROJECT_NAME: str
