@@ -49,6 +49,10 @@ async def get_user(
     current_user: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db)
 ):
+    # Only allow fetching your own user record
+    if str(current_user.id) != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this user")
+    
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     
