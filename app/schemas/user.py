@@ -1,7 +1,9 @@
+# app/schemas/user.py
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
+
 # Base schema shared across operations
 class UserBase(BaseModel):
     username: str = Field(..., max_length=50)
@@ -27,3 +29,9 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     password: Optional[str] = Field(None, min_length=6)
     profile_url: Optional[str] = None
+
+# NEW: Schema for user creation response with token
+class UserWithToken(BaseModel):
+    user: UserResponse
+    access_token: str
+    token_type: str = "bearer"

@@ -1,3 +1,4 @@
+# app/models/users.py
 from datetime import datetime
 from typing import Optional, List
 import uuid
@@ -9,6 +10,11 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+# Import Task here to avoid circular imports
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from app.models.tasks import Task
 
 class User(Base):
     __tablename__ = "users"
@@ -38,7 +44,7 @@ class User(Base):
 
     hashed_password: Mapped[str] = mapped_column(
         String(255),
-        nullable = False,
+        nullable=False,
     )
 
     profile_url: Mapped[Optional[str]] = mapped_column(
@@ -57,4 +63,5 @@ class User(Base):
         onupdate=func.now(),
     )
 
-    tasks: Mapped[List[Task]] = relationship("Task", back_populates="user")
+    # Use string reference for relationship to avoid circular import
+    tasks: Mapped[List["Task"]] = relationship("Task", back_populates="user")

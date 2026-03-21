@@ -78,12 +78,12 @@ class Task(Base):
         onupdate=func.now()
     )
 
-    started_at: Mapped[DateTime] = mapped_column(
+    started_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
     )
 
-    completed_at: Mapped[DateTime] = mapped_column(
+    completed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
     )

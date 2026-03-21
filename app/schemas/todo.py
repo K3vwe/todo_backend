@@ -1,14 +1,13 @@
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional
-from app.models.enum import TaskStatus
+from app.models.enum import TaskStatus, TaskPriority 
 from uuid import UUID
-
 
 class TaskBase(BaseModel):
     title: str
     description: Optional[str] = None
-    priority: str
+    priority: str 
 
 class CreateTask(TaskBase):
     due_at: Optional[datetime] = None
@@ -27,6 +26,6 @@ class TaskResponse(TaskBase):
 class UpdateTask(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
-    priority: Optional[str] = None
+    priority: Optional[TaskPriority] = None  
     status: Optional[TaskStatus] = None
     due_at: Optional[datetime] = None
