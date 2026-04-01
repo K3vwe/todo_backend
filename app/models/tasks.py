@@ -13,6 +13,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import UUID, ENUM
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
+from sqlalchemy.orm import validates
 from app.models.enum import TaskStatus, TaskPriority
 
 class Task(Base):
@@ -89,3 +90,19 @@ class Task(Base):
     )
 
     user: Mapped[User] = relationship("User", back_populates="tasks")
+
+    @validates("started_at", "completed_at")
+    def auto_status(self, key, value):
+        """
+        Status auto-derived from timestamps:
+        - completed_at set → COMPLETE
+        - started_at set → IN_PROGRESS (if not complete)
+        - else → PENDING
+        """
+        if key == "completed_at" and value is not None:
+            self.status = TaskStatus.COMPLETED
+        elif key == "started_at" and value is not None and not self.completed_at:
+            self.status = TaskStatus.IN_PROGRESS
+        elif not self.started_at and not self.completed_at:
+            self.status = TaskStatus.PENDING
+        return value
