@@ -13,6 +13,7 @@ ecdsa==0.19.1
 email-validator==2.3.0
 fastapi==0.128.0
 greenlet==3.3.0
+gunicorn==25.3.0
 h11==0.16.0
 httpcore==1.0.9
 httpx==0.28.1
@@ -34,6 +35,7 @@ PyJWT==2.11.0
 pytest==9.0.2
 python-dotenv==1.2.1
 python-jose==3.5.0
+python-multipart==0.0.22
 pytz==2025.2
 rsa==4.9.1
 six==1.17.0
