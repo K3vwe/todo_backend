@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: taskbackend
+    container_name: taskbackend
+    env_file:
+      - .env.docker
+    ports: 
+      - "8000:8000"
+    depends_on:
+     - db
+  db: 
+    image: postgres:latest
+    container_name: taskpostgres
+    env_file: 
+      - .env.docker
+    ports:
+      - "5432:5432"
+    volumes: 
+      - pgdata:/var/lib/postgresql
+
+volumes:
+  pgdata:
+    external: true

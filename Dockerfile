@@ -69,7 +69,8 @@ COPY --chown=backend:backend --from=builder /wheels /wheels
 
 # Install tini for proper signal handling
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends tini curl && \
+    apt-get install -y --no-install-recommends tini curl || \
+    apt-get install -y --no-install-recommends --fix-missing tini curl && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install wheels + gunicorn in production
