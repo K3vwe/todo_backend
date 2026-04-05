@@ -11,6 +11,8 @@ RUN python -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 ENV PYTHONUNBUFFERED=1
+# Python path
+ENV PYTHONPATH=/app
 
 # ------------ Builder Layer ------------
 FROM base AS builder
@@ -21,7 +23,6 @@ COPY requirements.txt .
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libffi-dev \
-        tini \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -35,7 +36,6 @@ FROM base AS dev
 ENV ENV=development
 
 COPY --from=builder /wheels /wheels
-
 RUN pip install --no-cache-dir /wheels/*
 
 COPY --chown=backend:backend . .
@@ -44,7 +44,7 @@ USER backend
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
 
 # ------------ Test Layer ------------
@@ -52,33 +52,38 @@ FROM base AS test
 
 ENV ENV=test
 
-COPY --chown=backend:backend --from=builder /opt/venv /opt/venv
 COPY --chown=backend:backend --from=builder /wheels /wheels
-COPY --chown=backend:backend --from=builder /app /app
 
-RUN pip install --no-cache-dir /wheels/* pytest
+RUN pip install --no-index --no-cache-dir /wheels/* pytest
+
+COPY --chown=backend:backend app /app/app
 
 USER backend
 
 CMD ["pytest", "-v"]
 
 # ----------- Production Layer ------------
-FROM gcr.io/distroless/python3 
+FROM base AS production
 
-WORKDIR /app
+COPY --chown=backend:backend --from=builder /wheels /wheels
 
-COPY --chown=backend:backend --from=builder /opt/venv /opt/venv
-COPY --chown=backend:backend --from=builder /app /app
+# Install tini for proper signal handling
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends tini curl && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copy tini static binary from builder stage
-COPY --from=builder /usr/bin/tini /usr/bin/tini
+# Install wheels + gunicorn in production
+RUN pip install --no-index --no-cache-dir /wheels/* 
 
-# Set local env
-ENV PATH="/opt/venv/bin:$PATH"
+COPY --chown=backend:backend app /app/app
+COPY --chown=backend:backend alembic /app/alembic
+COPY --chown=backend:backend alembic.ini /app/
+
+USER backend
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
 
-# HEALTHCHECK --interval=30s --start-period=5s --retries=3 --timeout=10s \
-#     CMD curl http://localhost:8000/api/v1/health || exit 1
+HEALTHCHECK --interval=30s --start-period=5s --retries=3 --timeout=10s \
+    CMD curl http://localhost:8000/api/v1/health || exit 1
 
 CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "app.main:app", "--bind", "0.0.0.0:8000", "--workers", "3"]
