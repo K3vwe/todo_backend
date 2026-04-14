@@ -1,0 +1,60 @@
+#=====================================================================================
+# Development Dockerfile
+#=====================================================================================
+# Intended for local development only.
+# For production, use Dockerfile.prod
+#=====================================================================================
+
+ARG PYTHON_VERSION=3.13-slim-bookworm
+FROM python:${PYTHON_VERSION}
+
+# Build args for UID/GID — lets host/container user align on Linux
+ARG UID=1001
+ARG GID=1001
+
+WORKDIR /app
+
+# ── System dependencies ────────────────────────────────────────────────────────
+# Pin apt installs; clean up in the same layer to avoid bloat
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl \
+        libffi-dev \
+        make \
+        gcc \
+        g++ \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── Non-root user ──────────────────────────────────────────────────────────────
+# Create with explicit UID/GID so bind-mounted files have consistent ownership
+RUN groupadd -r -g ${GID} backend \
+    && useradd -r -u ${UID} -g backend -m -s /bin/bash backend
+
+# ── Python virtual environment ─────────────────────────────────────────────────
+ENV VIRTUAL_ENV="/opt/venv"
+RUN python -m venv ${VIRTUAL_ENV} \
+    && chown -R backend:backend ${VIRTUAL_ENV}
+ENV PATH="${VIRTUAL_ENV}/bin:$PATH"
+
+# ── Python dependencies ────────────────────────────────────────────────────────
+# Copy only requirements first — cache this layer independently of source code
+COPY --chown=backend:backend requirements.txt ./
+
+# Upgrade pip in the same RUN to keep the layer count down;
+# install directly — the /wheels two-step buys nothing in a non-multi-stage dev image
+RUN pip install --no-cache-dir --upgrade pip wheel \
+    && pip install --no-cache-dir -r requirements.txt
+
+# ── Application source ─────────────────────────────────────────────────────────
+# Copied last so dependency layer is only invalidated when deps actually change
+COPY --chown=backend:backend . .
+
+USER backend
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --start-period=15s --retries=3 --timeout=5s \
+    CMD curl -f http://localhost:8000/api/v1/health || exit 1
+
+# --reload enables hot-reloading; source should be bind-mounted in docker-compose
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
