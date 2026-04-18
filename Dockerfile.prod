@@ -1,0 +1,80 @@
+# =============================================================================
+# Production Dockerfile — Multi-Stage Build
+# =============================================================================
+# Multi-stage build:
+#   builder  — installs build tools + compiles wheels
+#   runtime  — minimal image; copies only the venv, no build toolchain
+#
+# Build:
+#   docker build -t backendapp:latest .
+#   docker build --build-arg PYTHON_VERSION=3.14-slim-bookworm -t backendapp:1.0.0 .
+# =============================================================================
+
+
+ARG PYTHON_VERSION=3.14-slim-bookworm
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Stage 1 — builder
+# Compile wheels in an isolated stage so build tools never land in the final image.
+# ──────────────────────────────────────────────────────────────────────────────
+FROM python:${PYTHON_VERSION} AS builder
+WORKDIR /build
+
+# Install build time dependencies packages
+RUN apt-get update &&  apt-get install -y --no-install-recommends \
+    libffi-dev \
+    make \
+    gcc \
+    g++ \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+
+RUN pip install --no-cache-dir --upgrade pip wheel && \
+    pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Stage 2 — runtime
+# Clean base image: only the venv, tini, and the application source.
+# ──────────────────────────────────────────────────────────────────────────────
+FROM python:${PYTHON_VERSION} AS runtime
+
+ARG UID=1001
+ARG GID=1001
+
+WORKDIR /app
+
+# Runtime-only system deps:
+#   curl  — healthcheck probe
+#   tini  — PID 1 / proper signal forwarding + zombie reaping
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends tini curl \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# ── Non-root user ──────────────────────────────────────────────────────────────
+RUN groupadd -r -g ${GID} backend && useradd -r -u ${UID} -g backend -m -s /bin/bash backend
+
+# ──────────────────────── Application source ───────────────────────────────────
+COPY --chown=backend:backend --from=builder /wheels /wheels
+# Install packages 
+RUN pip install --no-index --no-cache-dir /wheels/*
+
+COPY --chown=backend:backend app /app/app
+COPY --chown=backend:backend alembic /app/alembic
+COPY --chown=backend:backend alembic.ini /app/
+
+USER backend
+
+EXPOSE 8000
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
+
+HEALTHCHECK --interval=10s --start-period=5s --timeout=10s --retries=3 \
+    CMD curl -f http://localhost:8000/api/v1/health || exit 1
+
+CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "app.main:app", "--bind", "0.0.0.0:8000", "--workers", "3"]
+
+# ======================================================================================
+

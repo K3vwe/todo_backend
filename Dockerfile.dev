@@ -42,19 +42,19 @@ COPY --chown=backend:backend requirements.txt ./
 
 # Upgrade pip in the same RUN to keep the layer count down;
 # install directly — the /wheels two-step buys nothing in a non-multi-stage dev image
-RUN pip install --no-cache-dir --upgrade pip wheel \
+RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
 # ── Application source ─────────────────────────────────────────────────────────
 # Copied last so dependency layer is only invalidated when deps actually change
-COPY --chown=backend:backend . .
+COPY --chown=backend:backend app /app/app
+COPY --chown=backend:backend alembic /app/alembic
+COPY --chown=backend:backend alembic.ini /app/
+
 
 USER backend
 
 EXPOSE 8000
 
-HEALTHCHECK --interval=30s --start-period=15s --retries=3 --timeout=5s \
-    CMD curl -f http://localhost:8000/api/v1/health || exit 1
-
 # --reload enables hot-reloading; source should be bind-mounted in docker-compose
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
